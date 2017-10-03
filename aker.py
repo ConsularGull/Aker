@@ -20,6 +20,9 @@ __license_info__ = {
     }
 }
 
+import signal
+import stat
+
 import logging
 import os
 import sys
@@ -115,6 +118,9 @@ class Aker(object):
             format='%(asctime)s - %(levelname)s - %(message)s',
             filename=log_file,
             level=config.log_level)
+
+        os.chmod(log_file, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO) # dirty chmod fix for log
+
         logging.info(
             "Core: Starting up, user={0} from={1}:{2}".format(
                 self.posix_user,
@@ -128,15 +134,16 @@ class Aker(object):
         self.tui = tui.Window(self)
         self.tui.draw()
         self.tui.start()
+        sys.exit()
 
-    def init_connection(self, host):
+    def init_connection(self, host, port):
         screen_size = self.tui.loop.screen.get_cols_rows()
         logging.debug("Core: pausing TUI")
         self.tui.pause()
         # TODO: check for shorter yet unique uuid
         session_uuid = uuid.uuid4()
         session_start_time = time.strftime("%Y%m%d-%H%M%S")
-        session = SSHSession(self, host, session_uuid)
+        session = SSHSession(self, host, port, session_uuid)
         # TODO: add err handling
         sniffer = SSHSniffer(
             self.posix_user,
@@ -165,4 +172,8 @@ class Aker(object):
 
 
 if __name__ == '__main__':
-    Aker().build_tui()
+    try:
+        Aker().build_tui()
+    except KeyboardInterrupt:
+        print('Ctrl-C pressed. Bye!')
+        sys.exit()

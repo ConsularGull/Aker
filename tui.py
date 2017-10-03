@@ -7,14 +7,13 @@
 __license__ = "AGPLv3"
 __author__ = 'Ahmed Nazmy <ahmed@nazmy.io>'
 
-
 import urwid
 import aker
 import signal
+import sys
 import logging
 import os
 from popup import SimplePopupLauncher
-
 
 class Listing(urwid.ListBox):
     """
@@ -69,7 +68,7 @@ class HostList(Listing):
         super(HostList, self).__init__(hosts)
 
     def keypress(self, size, key):
-        if key == 'enter':
+        if (key == 'enter') and (self.focus is not None):
             urwid.emit_signal(
                 self,
                 'connect',
@@ -95,7 +94,7 @@ class HostGroupList(Listing):
         super(HostGroupList, self).__init__(hostgroups)
 
     def keypress(self, size, key):
-        if key == 'enter':
+        if (key == 'enter') and (self.focus is not None):
             # emit signal to call hostgroup_chosen_handler with MenuItem caption,
             # caption is group name showing on screen
             urwid.emit_signal(
@@ -180,16 +179,16 @@ class Window(object):
 
     def set_palette(self):
         self.palette = [
-            ('body', 'black', 'light gray'),  # Normal Text
+            ('body', 'black', 'black'),  # Normal Text
             ('focus', 'light green', 'black', 'standout'),  # Focus
             ('head', 'white', 'dark gray', 'standout'),  # Header
             ('foot', 'light gray', 'dark gray'),  # Footer Separator
             ('key', 'light green', 'dark gray', 'bold'),
             ('title', 'white', 'black', 'bold'),
             ('popup', 'white', 'dark red'),
-            ('msg', 'yellow', 'dark gray'),
-            ('SSH', 'dark blue', 'light gray', 'underline'),
-            ('SSH_focus', 'light green', 'dark blue', 'standout')]  # Focus
+            #('msg', 'black', 'dark gray'),
+            ('SSH', 'white', 'white', 'underline'),
+            ('SSH_focus', 'white', 'dark blue', 'bold')]  # Focus
 
     def draw(self):
         self.header_text = [
@@ -320,10 +319,10 @@ class Window(object):
         self.header.update_text(header_text)
         self.topframe.set_body(self.hostlist.get_box())
 
-    def host_chosen_handler(self, choice):
-        host = choice
-        logging.debug("TUI: user %s chose server %s " % (self.user.name, host))
-        self.aker.init_connection(host)
+    def host_chosen_handler(self, host):
+        host = self.user.allowed_ssh_hosts[host]
+        logging.debug("TUI: user %s chose server %s " % (self.user.name, host.fqdn))
+        self.aker.init_connection(host.fqdn, host.ssh_port)
 
     def update_lists(self):
         logging.info(

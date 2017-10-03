@@ -47,8 +47,8 @@ class Host(object):
     hostgroups: list of hostgroups this server is part of
     """
 
-    def __init__(self, name, memberof_hostgroups, ssh_port=22):
-        self.fqdn = name
+    def __init__(self, fqdn, name, memberof_hostgroups, ssh_port):
+        self.fqdn = fqdn
         self.name = name
         self.ssh_port = ssh_port
         self.hostgroups = memberof_hostgroups
@@ -111,8 +111,10 @@ class Hosts(object):
                     # Deserialize back from redis
                     hostentry = Host(
                         json.loads(v)['fqdn'],
-                        json.loads(v)['hostgroups'])
-                    self._allowed_ssh_hosts[hostentry.fqdn] = hostentry
+                        json.loads(v)['name'],
+                        json.loads(v)['hostgroups'],
+                        json.loads(v)['ssh_port'])
+                    self._allowed_ssh_hosts[hostentry.name] = hostentry
                     logging.debug(
                         "Hosts: loading host {0} from cache".format(
                             hostentry.fqdn))
@@ -258,16 +260,18 @@ class Hosts(object):
             for backend_host, backend_host_attributes in self._backend_hosts.iteritems():
                 hostentry = Host(
                     backend_host_attributes['fqdn'],
-                    backend_host_attributes['hostgroups'])
-                self._allowed_ssh_hosts[hostentry.fqdn] = hostentry
+                    backend_host_attributes['name'],
+                    backend_host_attributes['hostgroups'],
+                    backend_host_attributes['ssh_port'])
+                self._allowed_ssh_hosts[hostentry.name] = hostentry
 
                 # Build HostGroup() objects from items we got from backend
                 for group in hostentry.hostgroups:
                     if group not in self._hostgroups:
                         self._hostgroups[group] = HostGroup(group)
-                        self._hostgroups[group].add_host(hostentry.fqdn)
+                        self._hostgroups[group].add_host(hostentry.name)
                     else:
-                        self._hostgroups[group].add_host(hostentry.fqdn)
+                        self._hostgroups[group].add_host(hostentry.name)
             # Save entries we got to the cache
             if self.redis is not None:
                 self._save_hosts_to_cache(self._allowed_ssh_hosts)

@@ -51,7 +51,8 @@ class Json(IdP):
                         if usergroup in self._user_groups:
                             self._allowed_ssh_hosts[
                                 host.get("name")] = {
-                                'fqdn': host.get("name"),
+                                'name': host.get("name"),
+                                'fqdn': host.get("hostname"),
                                 'ssh_port': host.get("port"),
                                 'hostgroups': host.get("hostgroups")}
 
