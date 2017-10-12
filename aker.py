@@ -42,7 +42,6 @@ from snoop import SSHSniffer
 
 
 config_file = "/etc/aker/aker.ini"
-log_file = '/var/log/aker/aker.log'
 session_log_dir = '/var/log/aker/'
 
 

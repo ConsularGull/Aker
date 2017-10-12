@@ -179,7 +179,7 @@ class Window(object):
 
     def set_palette(self):
         self.palette = [
-            ('body', 'black', 'black'),  # Normal Text
+            ('body', 'white', 'black'),  # Normal Text
             ('focus', 'light green', 'black', 'standout'),  # Focus
             ('head', 'white', 'dark gray', 'standout'),  # Header
             ('foot', 'light gray', 'dark gray'),  # Footer Separator

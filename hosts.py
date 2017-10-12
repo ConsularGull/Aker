@@ -272,8 +272,10 @@ class Hosts(object):
                         self._hostgroups[group].add_host(hostentry.name)
                     else:
                         self._hostgroups[group].add_host(hostentry.name)
+
             # Save entries we got to the cache
             if self.redis is not None:
                 self._save_hosts_to_cache(self._allowed_ssh_hosts)
                 self._save_hostgroups_to_cache(self._hostgroups)
+
             return self._allowed_ssh_hosts, self._hostgroups
