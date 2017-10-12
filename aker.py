@@ -24,6 +24,8 @@ import signal
 import stat
 
 import logging
+from logging.handlers import SysLogHandler
+
 import os
 import sys
 import uuid
@@ -93,7 +95,7 @@ class User(object):
 
     def refresh_allowed_hosts(self, fromcache):
         logging.info(
-            "Core: reloading hosts for user {0} from backened identity provider".format(
+            "Core: reloading hosts for user {0} from backend identity provider".format(
                 self.name))
         self.allowed_ssh_hosts, self.hostgroups = self.hosts.list_allowed(
             from_cache=fromcache)
@@ -111,15 +113,11 @@ class Aker(object):
         self.log_level = config.log_level
         self.port = config.ssh_port
 
-        # Setup logging first thing
-        for handler in logging.root.handlers[:]:
-            logging.root.removeHandler(handler)
-        logging.basicConfig(
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            filename=log_file,
-            level=config.log_level)
-
-        os.chmod(log_file, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO) # dirty chmod fix for log
+        logging.getLogger().setLevel(logging.INFO)
+        syslog = SysLogHandler(address='/dev/log')
+        formatter = logging.Formatter('%(asctime)s Aker: %(message)s', datefmt='%b %d %H:%M:%S')
+        syslog.setFormatter(formatter)
+        logging.getLogger().addHandler(syslog)
 
         logging.info(
             "Core: Starting up, user={0} from={1}:{2}".format(
@@ -176,4 +174,5 @@ if __name__ == '__main__':
         Aker().build_tui()
     except KeyboardInterrupt:
         print('Ctrl-C pressed. Bye!')
+        logging.info("Ctrl-C pressed. Exiting.")
         sys.exit()
